@@ -14,7 +14,7 @@ public class PayMyBuddyApplication {
 	private Environment env;
 
 	@Bean
-	private ModelMapper modelMapper() {return new ModelMapper();}
+	public ModelMapper modelMapper() {return new ModelMapper();}
 
 	public static void main(String[] args) {
 		SpringApplication.run(PayMyBuddyApplication.class, args);
