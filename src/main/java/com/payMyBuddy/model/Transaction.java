@@ -3,6 +3,7 @@ package com.payMyBuddy.model;
 import com.sun.istack.NotNull;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "transactions")
@@ -21,6 +22,8 @@ public class Transaction {
 
     @Column(nullable = false)
     private double amount;
+
+    private Date date;
 
     public User getSender() {
         return sender;
@@ -52,5 +55,13 @@ public class Transaction {
 
     public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
     }
 }
