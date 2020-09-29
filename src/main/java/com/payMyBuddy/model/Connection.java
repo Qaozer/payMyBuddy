@@ -10,27 +10,27 @@ public class Connection {
     private Long id;
 
     @OneToOne
-    private User userA;
+    private User first;
 
     @OneToOne
-    private User userB;
+    private User second;
 
     private boolean confirmed;
 
-    public User getUserA() {
-        return userA;
+    public User getFirst() {
+        return first;
     }
 
-    public void setUserA(User userA) {
-        this.userA = userA;
+    public void setFirst(User first) {
+        this.first = first;
     }
 
-    public User getUserB() {
-        return userB;
+    public User getSecond() {
+        return second;
     }
 
-    public void setUserB(User userB) {
-        this.userB = userB;
+    public void setSecond(User second) {
+        this.second = second;
     }
 
     public boolean isConfirmed() {
@@ -39,5 +39,9 @@ public class Connection {
 
     public void setConfirmed(boolean confirmed) {
         this.confirmed = confirmed;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

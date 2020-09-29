@@ -57,7 +57,6 @@ public class UserControllerTest {
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
-        System.out.println(response.getBody().toString());
         assertTrue(userRepository.findByEmail(newUser.getEmail()).isPresent());
     }
 }
