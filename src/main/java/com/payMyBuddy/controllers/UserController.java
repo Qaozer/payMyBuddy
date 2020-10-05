@@ -33,7 +33,7 @@ public class UserController {
     public ResponseEntity<UserDto> save(@RequestBody User user){
         if(userService.saveUser(user) != null){
             //TODO LOG USER SAVED
-            return new ResponseEntity<>(mp.map(user, UserDto.class), HttpStatus.CREATED);
+            return ResponseEntity.ok(mp.map(user, UserDto.class));
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
@@ -42,7 +42,7 @@ public class UserController {
     public ResponseEntity<UserDto> updateNickname(@RequestBody NicknameDto nicknameDto){
         User updated = userService.updateNickname(nicknameDto);
         if(updated != null){
-            return new ResponseEntity<>(mp.map(updated, UserDto.class), HttpStatus.OK);
+            return ResponseEntity.ok(mp.map(updated, UserDto.class));
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
