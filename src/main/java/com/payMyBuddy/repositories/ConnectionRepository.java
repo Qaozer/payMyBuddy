@@ -13,4 +13,5 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
     Optional<Connection> findById(Long id);
     List<Connection> findAllByOwnerOrTarget(User owner, User target);
     List<Connection> findAllByOwner(User owner);
+    Optional<Connection> findByOwnerAndTarget(User owner, User target);
 }
