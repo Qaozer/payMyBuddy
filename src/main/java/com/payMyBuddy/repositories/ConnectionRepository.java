@@ -11,5 +11,6 @@ import java.util.Optional;
 @Repository
 public interface ConnectionRepository extends JpaRepository<Connection, Long> {
     Optional<Connection> findById(Long id);
-    List<Connection> findAllByFirstOrSecond(User first, User second);
+    List<Connection> findAllByOwnerOrTarget(User owner, User target);
+    List<Connection> findAllByOwner(User owner);
 }

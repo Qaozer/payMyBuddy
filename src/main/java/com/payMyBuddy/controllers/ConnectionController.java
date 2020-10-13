@@ -25,17 +25,22 @@ public class ConnectionController {
     @Autowired
     private ModelMapper mp;
 
-    @PostMapping(value = "/connection")
-    public ResponseEntity<Connection> add (@RequestBody final Connection connection){
-        Connection con = connection;
-        con.setConfirmed(false);
-        try {
-            conService.save(con);
-            return new ResponseEntity<>(con, HttpStatus.CREATED);
-        } catch (Exception e){
-            //TODO LOG ERROR
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    @PostMapping(value = "/connection/{ownerId}/{slaveId}")
+    public ResponseEntity<Connection> add (@PathVariable Long ownerId, @PathVariable Long slaveId){
+        User owner = userService.getById(ownerId);
+        User slave = userService.getById(slaveId);
+        if(owner != null && slave != null){
+            Connection con = conService.createConnection(owner, slave);
+            try {
+                conService.save(con);
+                return new ResponseEntity<>(con, HttpStatus.CREATED);
+            } catch (Exception e){
+                //TODO LOG ERROR
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
         }
+        //TODO LOG User doesn't exist
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     @GetMapping(value = "/connection")

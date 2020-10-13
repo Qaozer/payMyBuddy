@@ -18,16 +18,21 @@ public class ConnectionService {
     }
 
     public List<Connection> findAllConnectionsByUser(User user){
-        return conRepository.findAllByFirstOrSecond(user, user);
+        return conRepository.findAllByOwnerOrTarget(user, user);
     }
 
-    public Connection setConfirmation(Long id, boolean isConfirmed){
-        Connection connection = conRepository.findById(id).get();
-        connection.setConfirmed(isConfirmed);
-        return save(connection);
+    public List<Connection> findAllConnectionsByOwner(User user){
+        return conRepository.findAllByOwner(user);
     }
 
     public void delete(Long id){
         conRepository.deleteById(id);
+    }
+
+    public Connection createConnection(User owner, User target){
+        Connection connection = new Connection();
+        connection.setOwner(owner);
+        connection.setTarget(target);
+        return connection;
     }
 }

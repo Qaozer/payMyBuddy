@@ -10,35 +10,25 @@ public class Connection {
     private Long id;
 
     @OneToOne
-    private User first;
+    private User owner;
 
     @OneToOne
-    private User second;
+    private User target;
 
-    private boolean confirmed;
-
-    public User getFirst() {
-        return first;
+    public User getOwner() {
+        return owner;
     }
 
-    public void setFirst(User first) {
-        this.first = first;
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 
-    public User getSecond() {
-        return second;
+    public User getTarget() {
+        return target;
     }
 
-    public void setSecond(User second) {
-        this.second = second;
-    }
-
-    public boolean isConfirmed() {
-        return confirmed;
-    }
-
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
+    public void setTarget(User target) {
+        this.target = target;
     }
 
     public Long getId() {

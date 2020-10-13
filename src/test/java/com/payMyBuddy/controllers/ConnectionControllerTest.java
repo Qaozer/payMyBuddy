@@ -1,6 +1,5 @@
 package com.payMyBuddy.controllers;
 
-import com.payMyBuddy.model.Connection;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.repositories.ConnectionRepository;
 import com.payMyBuddy.repositories.UserRepository;
@@ -68,12 +67,12 @@ public class ConnectionControllerTest {
         user1 = userRepository.save(user1);
         user2 = userRepository.save(user2);
 
-        assertTrue(ctcRepository.findAllByFirstOrSecond(user1,user1).isEmpty());
+        assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
         );
-        assertFalse(ctcRepository.findAllByFirstOrSecond(user1,user1).isEmpty());
+        assertFalse(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
     }
 }

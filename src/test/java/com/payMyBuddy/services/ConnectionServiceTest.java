@@ -41,19 +41,12 @@ public class ConnectionServiceTest {
 
         assertTrue(conService.findAllConnectionsByUser(user1).isEmpty());
 
-        Connection connection = new Connection();
-        connection.setFirst(user1);
-        connection.setSecond(user2);
+        Connection connection = conService.createConnection(user1, user2);
 
         connection = conService.save(connection);
 
-        assertFalse(connection.isConfirmed());
         assertFalse(conService.findAllConnectionsByUser(user1).isEmpty());
         assertFalse(conService.findAllConnectionsByUser(user2).isEmpty());
-
-        connection = conService.setConfirmation(connection.getId(), true);
-
-        assertTrue(connection.isConfirmed());
 
         conService.delete(connection.getId());
 
