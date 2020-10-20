@@ -27,28 +27,31 @@ public class ConnectionController {
 
     @PostMapping(value = "/connection/{ownerId}/{slaveId}")
     public ResponseEntity<Connection> add (@PathVariable Long ownerId, @PathVariable Long slaveId){
-        User owner = userService.getById(ownerId);
-        User slave = userService.getById(slaveId);
-        if(owner != null && slave != null){
-            Connection con = conService.createConnection(owner, slave);
-            try {
-                conService.save(con);
-                return new ResponseEntity<>(con, HttpStatus.CREATED);
-            } catch (Exception e){
+        if (userService.getById(ownerId).isEmpty() || userService.getById(slaveId).isEmpty()){
+            //TODO Log user doesn't exist
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        User owner = userService.getById(ownerId).get();
+        User slave = userService.getById(slaveId).get();
+        Connection con = conService.createConnection(owner, slave);
+        try {
+            conService.save(con);
+            return new ResponseEntity<>(con, HttpStatus.CREATED);
+        } catch (Exception e){
                 //TODO LOG ERROR
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
         }
-        //TODO LOG User doesn't exist
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 
     @GetMapping(value = "/connection")
-    public List<ConnectionDto> getConnectionsByUserEmail(@RequestParam ("email") String email){
-        User user = userService.getByEmail(email);
+    public ResponseEntity<List<ConnectionDto>> getConnectionsByUserEmail(@RequestParam ("email") String email){
+        if (userService.getByEmail(email).isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        User user = userService.getByEmail(email).get();
         List<ConnectionDto> connectionDtoList = conService.findAllConnectionsByUser(user).stream()
                 .map(this::ConnectionToDto).collect(Collectors.toList());
-        return connectionDtoList;
+        return ResponseEntity.ok(connectionDtoList);
     }
 
     private ConnectionDto ConnectionToDto (Connection con){

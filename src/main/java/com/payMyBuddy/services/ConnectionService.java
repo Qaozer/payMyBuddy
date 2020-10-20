@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ConnectionService {
@@ -23,6 +24,10 @@ public class ConnectionService {
 
     public List<Connection> findAllConnectionsByOwner(User user){
         return conRepository.findAllByOwner(user);
+    }
+
+    public Optional<Connection> findByOwnerAndTarget(User owner, User target){
+        return conRepository.findByOwnerAndTarget(owner, target);
     }
 
     public void delete(Long id){

@@ -19,22 +19,22 @@ public class UserService {
         return user;
     }
 
-    public User getByEmail(String email){
-        return userRepository.findByEmail(email).orElse(null);
+    public Optional<User> getByEmail(String email){
+        return userRepository.findByEmail(email);
     }
 
-    public User updateNickname (NicknameDto nicknameDto){
+    public Optional<User> updateNickname (NicknameDto nicknameDto){
         Optional<User> opt = userRepository.findByEmail(nicknameDto.getEmail());
         if(opt.isPresent()){
             User inDB = opt.get();
             inDB.setNickname(nicknameDto.getNickname());
-            userRepository.save(inDB);
-            return (inDB);
+            inDB = userRepository.save(inDB);
+            return (Optional.of(inDB));
         }
-        return null;
+        return opt;
     }
 
-    public User getById (Long id) {
-        return userRepository.findById(id).orElse(null);
+    public Optional<User> getById (Long id) {
+        return userRepository.findById(id);
     }
 }
