@@ -1,6 +1,8 @@
 package com.payMyBuddy.controllers;
 
+import com.payMyBuddy.dto.IdentifyDto;
 import com.payMyBuddy.dto.NicknameDto;
+import com.payMyBuddy.dto.PasswordUpdateDto;
 import com.payMyBuddy.dto.UserDto;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.services.UserService;
@@ -32,12 +34,12 @@ public class UserController {
     }
 
     @PostMapping(value = "/user")
-    public ResponseEntity<UserDto> save(@RequestBody User user){
-        if(userService.saveUser(user) != null){
-            //TODO LOG USER SAVED
+    public ResponseEntity<UserDto> create(@RequestBody User user){
+        if(userService.getByEmail(user.getEmail()).isEmpty()){
+            userService.createUser(user);
             return ResponseEntity.ok(mp.map(user, UserDto.class));
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return ResponseEntity.badRequest().build();
     }
 
     @PutMapping(value = "/user")
@@ -47,5 +49,25 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
             return ResponseEntity.ok(mp.map(updated.get(), UserDto.class));
+    }
+
+    @PostMapping(value = "/identify")
+    public ResponseEntity identify(@RequestBody IdentifyDto identifyDto){
+        if(userService.getByEmail(identifyDto.getEmail()).isPresent()){
+            if(userService.identify(identifyDto)){
+                return ResponseEntity.ok().build();
+            }
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @PutMapping(value = "/userpw")
+    public ResponseEntity updatePassword(@RequestBody PasswordUpdateDto pwUpdDto){
+        if (userService.getByEmail(pwUpdDto.getEmail()).isPresent()){
+            if(userService.updatePassword(pwUpdDto)){
+                return ResponseEntity.ok().build();
+            }
+        }
+        return ResponseEntity.badRequest().build();
     }
 }

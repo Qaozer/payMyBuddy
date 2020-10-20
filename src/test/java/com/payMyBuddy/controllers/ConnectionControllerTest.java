@@ -1,5 +1,9 @@
 package com.payMyBuddy.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.payMyBuddy.dto.ConnectionDto;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.repositories.ConnectionRepository;
 import com.payMyBuddy.repositories.UserRepository;
@@ -11,12 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -61,7 +65,7 @@ public class ConnectionControllerTest {
     }
 
     @Test
-    public void addConnectionTest(){
+    public void addConnectionShouldCreateConnectionIfUsersExistsAndConnectionIsNotInDb(){
         User user1 = createUser();
         User user2 = createUser();
         user2.setEmail("B@B.fr");
@@ -72,9 +76,91 @@ public class ConnectionControllerTest {
         assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
-        ResponseEntity response = restTemplate.exchange(
+        ResponseEntity<String> response = restTemplate.exchange(
                 createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
         );
         assertFalse(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+    }
+
+    @Test
+    public void addConnectionShouldReturnBadRequestIfAnyUserDoesNotExist(){
+        User user1 = createUser();
+        User user2 = createUser();
+        user2.setEmail("B@B.fr");
+
+        user1 = userRepository.save(user1);
+        user2 = userRepository.save(user2);
+
+        assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+
+        HttpEntity entity = new HttpEntity<>(httpHeaders);
+        ResponseEntity<String> response = restTemplate.exchange(
+                createURLWithPort("connection/"+user1.getId()+"/"+72), HttpMethod.POST,entity, String.class
+        );
+        assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void addConnectionShouldReturnBadRequestIfConnectionAlreadyExists(){
+        User user1 = createUser();
+        User user2 = createUser();
+        user2.setEmail("B@B.fr");
+
+        user1 = userRepository.save(user1);
+        user2 = userRepository.save(user2);
+
+        HttpEntity entity = new HttpEntity<>(httpHeaders);
+        ResponseEntity<String> response = restTemplate.exchange(
+                createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
+        );
+        assertFalse(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+
+        response = restTemplate.exchange(
+                createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
+        );
+
+        assertEquals(1, ctcRepository.findAllByOwner(user1).size());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void getConnectionByUserEmailShouldReturnAList(){
+        User user1 = createUser();
+        User user2 = createUser();
+        user2.setEmail("B@B.fr");
+
+        user1 = userRepository.save(user1);
+        user2 = userRepository.save(user2);
+
+        HttpEntity entity = new HttpEntity<>(httpHeaders);
+        ResponseEntity response = restTemplate.exchange(
+                createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
+        );
+
+        ResponseEntity response2 = restTemplate.exchange(
+                createURLWithPort("connection?email="+user1.getEmail()), HttpMethod.GET,entity, String.class
+        );
+
+        ObjectMapper mapper = new ObjectMapper();
+        List<ConnectionDto> list = null;
+        try {
+            list = mapper.readValue((String)response2.getBody(), new TypeReference<List<ConnectionDto>>(){});
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        assertEquals(1, list.size());
+        assertEquals("BobM@Aventure.fr", list.get(0).getOwner().getEmail());
+        assertEquals("B@B.fr",list.get(0).getTarget().getEmail());
+    }
+
+    @Test
+    public void getConnectionByUserEmailShouldReturnAnEmptyListIfUserDoesNotExist(){
+        HttpEntity entity = new HttpEntity<>(httpHeaders);
+        ResponseEntity<List>response = restTemplate.exchange(
+                createURLWithPort("connection?email=BobM@Aventurier.fr"), HttpMethod.GET,entity, List.class
+        );
+        List list = response.getBody();
+        assertTrue(list.isEmpty());
     }
 }

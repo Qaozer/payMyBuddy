@@ -1,34 +1,25 @@
 package com.payMyBuddy.dto;
 
 public class ConnectionDto {
-    private UserDto first;
-    private UserDto second;
-    private boolean confirmed;
+    private UserDto owner;
+    private UserDto target;
 
     public ConnectionDto() {
     }
 
-    public UserDto getFirst() {
-        return first;
+    public UserDto getOwner() {
+        return owner;
     }
 
-    public void setFirst(UserDto first) {
-        this.first = first;
+    public void setOwner(UserDto owner) {
+        this.owner = owner;
     }
 
-    public UserDto getSecond() {
-        return second;
+    public UserDto getTarget() {
+        return target;
     }
 
-    public void setSecond(UserDto second) {
-        this.second = second;
-    }
-
-    public boolean isConfirmed() {
-        return confirmed;
-    }
-
-    public void setConfirmed(boolean confirmed) {
-        this.confirmed = confirmed;
+    public void setTarget(UserDto target) {
+        this.target = target;
     }
 }
