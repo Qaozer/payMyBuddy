@@ -17,12 +17,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class TransactionControllerTest {
 
     @LocalServerPort
@@ -97,8 +99,8 @@ public class TransactionControllerTest {
                 createURLWithPort("transaction"), HttpMethod.POST, entity, TransactionDto.class
         );
 
-        user1 = userService.getById(user1.getId());
-        user2 = userService.getById(user2.getId());
+        user1 = userService.getById(user1.getId()).get();
+        user2 = userService.getById(user2.getId()).get();
 
         assertFalse(txService.findAllByUser(user1).isEmpty());
 

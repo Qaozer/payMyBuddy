@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 public class UserController {
 
@@ -20,13 +22,13 @@ public class UserController {
     private UserService userService;
 
     @GetMapping(value ="/user")
-    public UserDto getByEmail(@RequestParam("email") String email){
-        User user = userService.getByEmail(email);
-        if (user != null){
-            return mp.map(user, UserDto.class);
+    public ResponseEntity<UserDto> getByEmail(@RequestParam("email") String email){
+        Optional<User> user = userService.getByEmail(email);
+        if(user.isEmpty()){
+            //TODO LOG USER NOT FOUND
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        //TODO LOG USER NOT FOUND
-        return null;
+        return ResponseEntity.ok(mp.map(user.get(), UserDto.class));
     }
 
     @PostMapping(value = "/user")
@@ -40,10 +42,10 @@ public class UserController {
 
     @PutMapping(value = "/user")
     public ResponseEntity<UserDto> updateNickname(@RequestBody NicknameDto nicknameDto){
-        User updated = userService.updateNickname(nicknameDto);
-        if(updated != null){
-            return ResponseEntity.ok(mp.map(updated, UserDto.class));
+        Optional<User> updated = userService.updateNickname(nicknameDto);
+        if (updated.isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.ok(mp.map(updated.get(), UserDto.class));
     }
 }

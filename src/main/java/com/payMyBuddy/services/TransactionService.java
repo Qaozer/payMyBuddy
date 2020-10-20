@@ -32,8 +32,13 @@ public class TransactionService {
         double fare = amount * 0.05;
         double total = amount + fare;
 
-        User sender = userService.getById(txDto.getSenderId());
-        User receiver = userService.getById(txDto.getReceiverId());
+        if(userService.getById(txDto.getSenderId()).isEmpty() || userService.getById(txDto.getReceiverId()).isEmpty()){
+            //TODO Log error : Bad user id
+            return false;
+        }
+
+        User sender = userService.getById(txDto.getSenderId()).get();
+        User receiver = userService.getById(txDto.getReceiverId()).get();
 
         if(isPaymentAuthorized(sender, receiver, total)){
             sender.setSolde(sender.getSolde() - total);
