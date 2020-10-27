@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,24 +35,23 @@ public class ConnectionController {
         User owner = userService.getById(ownerId).get();
         User slave = userService.getById(slaveId).get();
         Connection con = conService.createConnection(owner, slave);
-        try {
+        if(conService.findByOwnerAndTarget(owner, slave).isEmpty()){
             conService.save(con);
             return new ResponseEntity<>(con, HttpStatus.CREATED);
-        } catch (Exception e){
-                //TODO LOG ERROR
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+
     }
 
     @GetMapping(value = "/connection")
-    public ResponseEntity<List<ConnectionDto>> getConnectionsByUserEmail(@RequestParam ("email") String email){
+    public List<ConnectionDto> getConnectionsByUserEmail(@RequestParam ("email") String email){
         if (userService.getByEmail(email).isEmpty()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return Collections.emptyList();
         }
         User user = userService.getByEmail(email).get();
         List<ConnectionDto> connectionDtoList = conService.findAllConnectionsByUser(user).stream()
                 .map(this::ConnectionToDto).collect(Collectors.toList());
-        return ResponseEntity.ok(connectionDtoList);
+        return connectionDtoList;
     }
 
     private ConnectionDto ConnectionToDto (Connection con){
