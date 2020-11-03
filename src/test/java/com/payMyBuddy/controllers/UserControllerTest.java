@@ -15,12 +15,15 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class UserControllerTest {
 
     @LocalServerPort
@@ -47,22 +50,21 @@ public class UserControllerTest {
         user.setNickname("BobM");
         user.setEmail("BobM@Aventure.fr");
         user.setPassword("MotDePasse");
-        //user.setSolde(777);
         return user;
     }
 
     @Test
     public void saveShouldCreateUserInDbWithSoldSetToZero(){
         User newUser = createUser();
-        assertTrue(userRepository.findByEmail(newUser.getEmail()).isEmpty());
+        assertTrue(userService.getByEmail(newUser.getEmail()).isEmpty());
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
-        assertTrue(userRepository.findByEmail(newUser.getEmail()).isPresent());
+        assertTrue(userService.getByEmail(newUser.getEmail()).isPresent());
         assertEquals(0, userRepository.findByEmail(newUser.getEmail()).get().getSolde());
         //Verify the password is crypted in DB
-        assertNotEquals(newUser.getPassword(),userRepository.findByEmail(newUser.getEmail()).get().getPassword() );
+        assertNotEquals(newUser.getPassword(),userService.getByEmail(newUser.getEmail()).get().getPassword() );
     }
 
     @Test
@@ -72,14 +74,14 @@ public class UserControllerTest {
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
-        assertEquals(1, userRepository.findAll().size());
+        assertEquals(1, userService.getAll().size());
         entity = new HttpEntity<>(newUser, httpHeaders);
         response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         //Verify that no other user was created
-        assertEquals(1, userRepository.findAll().size());
+        assertEquals(1, userService.getAll().size());
     }
 
     @Test
@@ -90,7 +92,7 @@ public class UserControllerTest {
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
 
-        User inDb = userRepository.findByEmail(newUser.getEmail()).get();
+        User inDb = userService.getByEmail(newUser.getEmail()).get();
         assertEquals("BobM",inDb.getNickname());
 
         NicknameDto nicknameDto = new NicknameDto();
@@ -101,7 +103,7 @@ public class UserControllerTest {
         response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.PUT, entity2, String.class
         );
-        assertEquals(nicknameDto.getNickname(), userRepository.findByEmail(newUser.getEmail()).get().getNickname());
+        assertEquals(nicknameDto.getNickname(), userService.getByEmail(newUser.getEmail()).get().getNickname());
     }
 
     @Test
@@ -192,7 +194,7 @@ public class UserControllerTest {
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
 
-        String oldHash = userRepository.findByEmail(newUser.getEmail()).get().getPassword();
+        String oldHash = userService.getByEmail(newUser.getEmail()).get().getPassword();
         PasswordUpdateDto pwUpdDto = new PasswordUpdateDto();
         pwUpdDto.setEmail(newUser.getEmail());
         pwUpdDto.setOldPassword(newUser.getPassword());
@@ -204,7 +206,7 @@ public class UserControllerTest {
         );
 
         assertEquals(HttpStatus.OK, response2.getStatusCode());
-        assertNotEquals(oldHash,userRepository.findByEmail(newUser.getEmail()).get().getPassword());
+        assertNotEquals(oldHash,userService.getByEmail(newUser.getEmail()).get().getPassword());
     }
 
     @Test
