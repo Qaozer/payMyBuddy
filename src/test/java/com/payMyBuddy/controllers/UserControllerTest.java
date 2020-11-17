@@ -71,12 +71,11 @@ public class UserControllerTest {
     public void saveShoulReturnBadRequestIfEmailAlreadyInDb(){
         User newUser = createUser();
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
-        ResponseEntity response = restTemplate.exchange(
+        restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
         assertEquals(1, userService.getAll().size());
-        entity = new HttpEntity<>(newUser, httpHeaders);
-        response = restTemplate.exchange(
+        ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
