@@ -8,11 +8,15 @@ import com.payMyBuddy.repositories.UserRepository;
 import com.payMyBuddy.utils.Hashing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class UserService {
 
     @Autowired
@@ -75,5 +79,9 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public List<User> getAll(){
+        return userRepository.findAll();
     }
 }

@@ -10,6 +10,7 @@ import com.payMyBuddy.repositories.UserRepository;
 import com.payMyBuddy.services.ConnectionService;
 import com.payMyBuddy.services.TransactionService;
 import com.payMyBuddy.services.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +20,15 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class TransactionControllerTest {
 
     @LocalServerPort
@@ -74,14 +78,24 @@ public class TransactionControllerTest {
         return user;
     }
 
-    @Test
-    public void makePaymentShouldProcessPaymentIfSenderSoldeIsHighEnoughAndThereIsAConnectionBetweenTheUsers(){
+    @Before
+    public void setup(){
         User user1 = createUser();
         User user2 = createUser();
         user2.setEmail("B@B.fr");
 
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        user1 = userService.createUser(user1);
+        user2 = userService.createUser(user2);
+    }
+
+    @Test
+    public void makePaymentShouldProcessPaymentIfSenderSoldeIsHighEnoughAndThereIsAConnectionBetweenTheUsers(){
+
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
+
+        user1.setSolde(100);
+        user1 = userService.saveUser(user1);
 
         Connection connection = ctcService.save(ctcService.createConnection(user1,user2));
 
@@ -108,18 +122,14 @@ public class TransactionControllerTest {
         assertEquals(user1, inDB.getSender());
         assertEquals(user2, inDB.getReceiver());
         assertEquals(16d, user1.getSolde());
-        assertEquals(180d, user2.getSolde());
+        assertEquals(80d, user2.getSolde());
     }
 
     @Test
     public void makePaymentShouldReturnBadRequestIfTheSenderSoldeIsntHighEnough(){
 
-        User user1 = createUser();
-        User user2 = createUser();
-        user2.setEmail("B@B.fr");
-
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
 
         assertTrue(txService.findAllByUser(user1).isEmpty());
 
@@ -140,12 +150,11 @@ public class TransactionControllerTest {
 
     @Test
     public void makePaymentShouldReturnBadRequestIfThereIsNoConnectionBetweenUsers(){
-        User user1 = createUser();
-        User user2 = createUser();
-        user2.setEmail("B@B.fr");
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
 
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        user1.setSolde(100);
+        user1 = userService.saveUser(user1);
 
         assertTrue(txService.findAllByUser(user1).isEmpty());
 

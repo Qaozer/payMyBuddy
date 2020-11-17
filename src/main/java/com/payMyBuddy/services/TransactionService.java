@@ -7,15 +7,21 @@ import com.payMyBuddy.repositories.TransactionRepository;
 import com.payMyBuddy.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
 
 @Service
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class TransactionService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TransactionRepository txRepository;
@@ -32,13 +38,13 @@ public class TransactionService {
         double fare = amount * 0.05;
         double total = amount + fare;
 
-        if(userService.getById(txDto.getSenderId()).isEmpty() || userService.getById(txDto.getReceiverId()).isEmpty()){
+        if(userRepository.findById(txDto.getSenderId()).isEmpty() || userRepository.findById(txDto.getReceiverId()).isEmpty()){
             //TODO Log error : Bad user id
             return false;
         }
 
-        User sender = userService.getById(txDto.getSenderId()).get();
-        User receiver = userService.getById(txDto.getReceiverId()).get();
+        User sender = userRepository.findById(txDto.getSenderId()).get();
+        User receiver = userRepository.findById(txDto.getReceiverId()).get();
 
         if(isPaymentAuthorized(sender, receiver, total)){
             sender.setSolde(sender.getSolde() - total);
@@ -50,8 +56,8 @@ public class TransactionService {
             transaction.setDate(new Date());
             transaction.setDescription(txDto.getDescription());
             txRepository.save(transaction);
-            userService.saveUser(sender);
-            userService.saveUser(receiver);
+            userRepository.save(sender);
+            userRepository.save(receiver);
             return true;
         }
         return false;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payMyBuddy.dto.ConnectionDto;
+import com.payMyBuddy.model.Connection;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.repositories.ConnectionRepository;
 import com.payMyBuddy.repositories.UserRepository;
@@ -18,13 +19,17 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class ConnectionControllerTest {
     @LocalServerPort
     private int port;
@@ -70,8 +75,8 @@ public class ConnectionControllerTest {
         User user2 = createUser();
         user2.setEmail("B@B.fr");
 
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        user1 = userService.createUser(user1);
+        user2 = userService.createUser(user2);
 
         assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
 
@@ -79,7 +84,7 @@ public class ConnectionControllerTest {
         ResponseEntity<String> response = restTemplate.exchange(
                 createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
         );
-        assertFalse(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+        assertFalse(ctcService.findByOwnerAndTarget(user1,user2).isEmpty());
     }
 
     @Test
@@ -88,16 +93,16 @@ public class ConnectionControllerTest {
         User user2 = createUser();
         user2.setEmail("B@B.fr");
 
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        user1 = userService.createUser(user1);
+        user2 = userService.createUser(user2);
 
-        assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+        assertTrue(ctcService.findAllConnectionsByUser(user1).isEmpty());
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> response = restTemplate.exchange(
                 createURLWithPort("connection/"+user1.getId()+"/"+72), HttpMethod.POST,entity, String.class
         );
-        assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+        assertTrue(ctcService.findAllConnectionsByUser(user1).isEmpty());
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
@@ -107,20 +112,20 @@ public class ConnectionControllerTest {
         User user2 = createUser();
         user2.setEmail("B@B.fr");
 
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        user1 = userService.createUser(user1);
+        user2 = userService.createUser(user2);
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> response = restTemplate.exchange(
                 createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
         );
-        assertFalse(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
+        assertFalse(ctcService.findAllConnectionsByUser(user1).isEmpty());
 
         response = restTemplate.exchange(
                 createURLWithPort("connection/"+user1.getId()+"/"+user2.getId()), HttpMethod.POST,entity, String.class
         );
 
-        assertEquals(1, ctcRepository.findAllByOwner(user1).size());
+        assertEquals(1, ctcService.findAllConnectionsByOwner(user1).size());
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
@@ -130,8 +135,8 @@ public class ConnectionControllerTest {
         User user2 = createUser();
         user2.setEmail("B@B.fr");
 
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
+        user1 = userService.createUser(user1);
+        user2 = userService.createUser(user2);
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
         ResponseEntity response = restTemplate.exchange(

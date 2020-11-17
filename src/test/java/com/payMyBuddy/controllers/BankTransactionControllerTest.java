@@ -6,6 +6,7 @@ import com.payMyBuddy.model.User;
 import com.payMyBuddy.repositories.BankTransactionRepository;
 import com.payMyBuddy.repositories.UserRepository;
 import com.payMyBuddy.services.BankTransactionService;
+import com.payMyBuddy.services.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,15 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Transactional(propagation = Propagation.REQUIRES_NEW)
 public class BankTransactionControllerTest {
 
     @LocalServerPort
@@ -31,6 +35,9 @@ public class BankTransactionControllerTest {
 
     @Autowired
     private BankTransactionService btxService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private BankTransactionRepository btxRepository;
@@ -55,9 +62,9 @@ public class BankTransactionControllerTest {
     @Test
     public void processTransactionShouldGoThroughWhenMoneyIsDepositedOnTheAppAccount(){
         User user1 = createUser();
-        user1 = userRepository.save(user1);
+        user1 = userService.saveUser(user1);
 
-        assertTrue(btxRepository.findAllByUser(user1).isEmpty());
+        assertTrue(btxService.findByUser(user1).isEmpty());
 
         BankTransactionDto btxDto = new BankTransactionDto();
 
@@ -69,17 +76,17 @@ public class BankTransactionControllerTest {
                 createURLWithPort("bankTransaction/"+user1.getId()), HttpMethod.POST,entity, BankTransaction.class
         );
 
-        assertFalse(btxRepository.findAllByUser(user1).isEmpty());
-        assertTrue(userRepository.findById(user1.getId()).get().getSolde() == 100);
+        assertFalse(btxService.findByUser(user1).isEmpty());
+        assertTrue(userService.getById(user1.getId()).get().getSolde() == 100);
     }
 
     @Test
     public void processTransactionShouldGoThroughWhenMoneyIsTakenFromTheAppAccountAndTheSoldeIsEnough(){
         User user1 = createUser();
         user1.setSolde(100);
-        user1 = userRepository.save(user1);
+        user1 = userService.saveUser(user1);
 
-        assertTrue(btxRepository.findAllByUser(user1).isEmpty());
+        assertTrue(btxService.findByUser(user1).isEmpty());
 
         BankTransactionDto btxDto = new BankTransactionDto();
 
@@ -91,17 +98,17 @@ public class BankTransactionControllerTest {
                 createURLWithPort("bankTransaction/"+user1.getId()), HttpMethod.POST,entity, BankTransaction.class
         );
 
-        assertFalse(btxRepository.findAllByUser(user1).isEmpty());
-        assertTrue(userRepository.findById(user1.getId()).get().getSolde() == 10);
+        assertFalse(btxService.findByUser(user1).isEmpty());
+        assertTrue(userService.getById(user1.getId()).get().getSolde() == 10);
     }
 
     @Test
     public void processTransactionShouldReturnBadRequestWhenMoneyIsTakenFromTheAppAccountAndTheSoldeIsntEnough(){
         User user1 = createUser();
         user1.setSolde(10);
-        user1 = userRepository.save(user1);
+        user1 = userService.saveUser(user1);
 
-        assertTrue(btxRepository.findAllByUser(user1).isEmpty());
+        assertTrue(btxService.findByUser(user1).isEmpty());
 
         BankTransactionDto btxDto = new BankTransactionDto();
 
@@ -113,8 +120,8 @@ public class BankTransactionControllerTest {
                 createURLWithPort("bankTransaction/"+user1.getId()), HttpMethod.POST,entity, BankTransaction.class
         );
 
-        assertTrue(btxRepository.findAllByUser(user1).isEmpty());
-        assertTrue(userRepository.findById(user1.getId()).get().getSolde() == 10);
+        assertTrue(btxService.findByUser(user1).isEmpty());
+        assertTrue(userService.getById(user1.getId()).get().getSolde() == 10);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
@@ -122,9 +129,9 @@ public class BankTransactionControllerTest {
     public void processTransactionShouldReturnBadRequestWhenTheUserIdIsIncorrect(){
         User user1 = createUser();
         user1.setSolde(10);
-        user1 = userRepository.save(user1);
+        user1 = userService.saveUser(user1);
 
-        assertTrue(btxRepository.findAllByUser(user1).isEmpty());
+        assertTrue(btxService.findByUser(user1).isEmpty());
 
         BankTransactionDto btxDto = new BankTransactionDto();
 
