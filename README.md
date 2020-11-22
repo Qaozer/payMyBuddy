@@ -8,4 +8,4 @@
 3. Exécuter le script contenu dans script.sql
 
 #Modèle Physique de Données
-[Modèle physique de données](img/MPD.png)
+<p><img src="img/MPD.png"></p>
