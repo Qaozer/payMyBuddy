@@ -5,6 +5,7 @@ import com.payMyBuddy.model.Connection;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.services.ConnectionService;
 import com.payMyBuddy.services.UserService;
+import org.apache.coyote.Response;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -68,6 +70,26 @@ public class ConnectionController {
         List<ConnectionDto> connectionDtoList = conService.findAllConnectionsByUser(user).stream()
                 .map(this::ConnectionToDto).collect(Collectors.toList());
         return connectionDtoList;
+    }
+
+    /**
+     * Delete a connection between users
+     * @param ctxDto connection infos
+     * @return 200 if successful, 400 otherwise
+     */
+    @DeleteMapping(value = "/connection")
+    public ResponseEntity<ConnectionDto> deleteConnectionByEmail(@RequestBody ConnectionDto ctxDto){
+        Optional<User> owner = userService.getByEmail(ctxDto.getOwner().getEmail());
+        Optional<User> target = userService.getByEmail(ctxDto.getTarget().getEmail());
+
+        if(owner.isPresent() && target.isPresent()){
+            Optional<Connection> connection = conService.findByOwnerAndTarget(owner.get(), target.get());
+            if (connection.isPresent()){
+                conService.delete(connection.get().getId());
+                return ResponseEntity.ok(ctxDto);
+            }
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     /**
