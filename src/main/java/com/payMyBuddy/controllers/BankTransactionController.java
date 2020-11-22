@@ -24,6 +24,12 @@ public class BankTransactionController {
     @Autowired
     private UserService userService;
 
+    /**
+     * Process a bank transaction
+     * @param btxDto transaction infos
+     * @param userId userID
+     * @return 400 if there was an error, 200 otherwise
+     */
     @PostMapping(value = "bankTransaction/{userId}")
     public ResponseEntity<BankTransaction> processTransaction (@RequestBody BankTransactionDto btxDto, @PathVariable Long userId){
         if(userService.getById(userId).isEmpty()){
@@ -39,6 +45,11 @@ public class BankTransactionController {
         }
     }
 
+    /**
+     * Get a list of bank transactions associated with a user
+     * @param userId the userID
+     * @return a list of bank transaction, 400 if the user doesn't exist
+     */
     @GetMapping(value = "bankTransaction/{userId}")
     public ResponseEntity<List<BankTransaction>> getTransactions (@PathVariable Long userId){
         if(userService.getById(userId).isEmpty()){

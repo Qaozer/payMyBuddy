@@ -29,25 +29,38 @@ public class ConnectionController {
     @Autowired
     private ModelMapper mp;
 
-    @PostMapping(value = "/connection/{ownerId}/{slaveId}")
-    public ResponseEntity<Connection> add (@PathVariable Long ownerId, @PathVariable Long slaveId){
-        if (userService.getById(ownerId).isEmpty() || userService.getById(slaveId).isEmpty()){
-            //TODO Log user doesn't exist
+    /**
+     * Add a connection between two users
+     * @param ownerId the initiating user
+     * @param targetId the target user
+     * @return 201 CREATED if the connection was successfully added, 400 otherwise
+     */
+    @PostMapping(value = "/connection/{ownerId}/{targetId}")
+    public ResponseEntity<Connection> add (@PathVariable Long ownerId, @PathVariable Long targetId){
+        //If one of the users doesn't exist, return BAD_REQUEST
+        if (userService.getById(ownerId).isEmpty() || userService.getById(targetId).isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         User owner = userService.getById(ownerId).get();
-        User slave = userService.getById(slaveId).get();
+        User slave = userService.getById(targetId).get();
         Connection con = conService.createConnection(owner, slave);
+        //If the connection doesn't exist already, save it in DB and return 201
         if(conService.findByOwnerAndTarget(owner, slave).isEmpty()){
             conService.save(con);
             return new ResponseEntity<>(con, HttpStatus.CREATED);
         }
+        //Otherwise, return 400
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
     }
 
+    /**
+     * Get a list of connections associated with a user
+     * @param email the email of the user
+     * @return a list of connections
+     */
     @GetMapping(value = "/connection")
     public List<ConnectionDto> getConnectionsByUserEmail(@RequestParam ("email") String email){
+        //If user doesn't exist, return an empty list
         if (userService.getByEmail(email).isEmpty()){
             return Collections.emptyList();
         }
@@ -57,6 +70,11 @@ public class ConnectionController {
         return connectionDtoList;
     }
 
+    /**
+     * Connection to ConnectionDto mapper
+     * @param con a connection
+     * @return corresponding connectionDto
+     */
     private ConnectionDto ConnectionToDto (Connection con){
         return mp.map(con, ConnectionDto.class);
     }
