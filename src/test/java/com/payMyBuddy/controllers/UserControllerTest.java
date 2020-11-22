@@ -1,8 +1,8 @@
 package com.payMyBuddy.controllers;
 
 import com.payMyBuddy.dto.IdentifyDto;
-import com.payMyBuddy.dto.NicknameDto;
 import com.payMyBuddy.dto.PasswordUpdateDto;
+import com.payMyBuddy.dto.UserDto;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.repositories.UserRepository;
 import com.payMyBuddy.services.UserService;
@@ -94,11 +94,11 @@ public class UserControllerTest {
         User inDb = userService.getByEmail(newUser.getEmail()).get();
         assertEquals("BobM",inDb.getNickname());
 
-        NicknameDto nicknameDto = new NicknameDto();
+        UserDto nicknameDto = new UserDto();
         nicknameDto.setEmail(newUser.getEmail());
         nicknameDto.setNickname("Bobby");
 
-        HttpEntity<NicknameDto> entity2 = new HttpEntity<>(nicknameDto, httpHeaders);
+        HttpEntity<UserDto> entity2 = new HttpEntity<>(nicknameDto, httpHeaders);
         response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.PUT, entity2, String.class
         );
@@ -113,11 +113,11 @@ public class UserControllerTest {
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
         );
 
-        NicknameDto nicknameDto = new NicknameDto();
+        UserDto nicknameDto = new UserDto();
         nicknameDto.setEmail("Bobby@Aventure.fr");
         nicknameDto.setNickname("Bobby");
 
-        HttpEntity<NicknameDto> entity2 = new HttpEntity<>(nicknameDto, httpHeaders);
+        HttpEntity<UserDto> entity2 = new HttpEntity<>(nicknameDto, httpHeaders);
         response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.PUT, entity2, String.class
         );

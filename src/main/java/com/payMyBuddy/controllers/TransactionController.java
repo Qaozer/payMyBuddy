@@ -20,13 +20,16 @@ public class TransactionController {
     @Autowired
     private TransactionService txService;
 
+    /**
+     * Process a payment between users
+     * @param txDto the transaction infos
+     * @return 200 if successful, 400 otherwise
+     */
     @PostMapping(value = "transaction")
     public ResponseEntity makePayment (@RequestBody TransactionDto txDto){
         if(txService.makePayment(txDto)){
-            //TODO Log Successfull tx
             return ResponseEntity.ok(txDto);
         } else {
-            //TODO Log Error during tx
             return ResponseEntity.badRequest().body(txDto);
         }
     }

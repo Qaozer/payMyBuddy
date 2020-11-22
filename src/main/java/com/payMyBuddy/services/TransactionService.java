@@ -29,17 +29,29 @@ public class TransactionService {
     @Autowired
     private ConnectionService conService;
 
+    /**
+     * Check whether a payment is authorized or not
+     * @param sender the user sending the money
+     * @param receiver the user receiving the money
+     * @param total the amount of money sent + the fee
+     * @return true if authorized, false otherwise
+     */
     private boolean isPaymentAuthorized(User sender, User receiver, double total){
         return sender.getSolde() > total && conService.findByOwnerAndTarget(sender, receiver).isPresent();
     }
 
+    /**
+     * Process a payment
+     * @param txDto the transaction infos
+     * @return true if successful, false otherwise
+     */
     public boolean makePayment (TransactionDto txDto){
         double amount = txDto.getAmount();
         double fare = amount * 0.05;
         double total = amount + fare;
 
+        //Check whether both user exist
         if(userRepository.findById(txDto.getSenderId()).isEmpty() || userRepository.findById(txDto.getReceiverId()).isEmpty()){
-            //TODO Log error : Bad user id
             return false;
         }
 
@@ -63,6 +75,11 @@ public class TransactionService {
         return false;
     }
 
+    /**
+     * Find all transactions linked to a user, whether sender or receiver
+     * @param user the user
+     * @return a list of transactions
+     */
     public List<Transaction> findAllByUser(User user){
         return txRepository.findAllBySenderOrReceiver(user,user);
     }

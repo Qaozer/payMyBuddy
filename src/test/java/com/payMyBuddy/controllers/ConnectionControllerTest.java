@@ -10,8 +10,10 @@ import com.payMyBuddy.repositories.ConnectionRepository;
 import com.payMyBuddy.repositories.UserRepository;
 import com.payMyBuddy.services.ConnectionService;
 import com.payMyBuddy.services.UserService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -52,6 +54,15 @@ public class ConnectionControllerTest {
     @Autowired
     private ConnectionRepository ctcRepository;
 
+    @Autowired
+    private ModelMapper mapper;
+
+    @Before
+    public void setup(){
+        userService.createUser(createUser("BobM@Aventure.fr"));
+        userService.createUser(createUser("B@B.fr"));
+    }
+
     private TestRestTemplate restTemplate = new TestRestTemplate();
 
     private HttpHeaders httpHeaders = new HttpHeaders();
@@ -60,10 +71,10 @@ public class ConnectionControllerTest {
         return "http://localhost:" + port + uri;
     }
 
-    private User createUser(){
+    private User createUser(String email){
         User user = new User();
         user.setNickname("BobM");
-        user.setEmail("BobM@Aventure.fr");
+        user.setEmail(email);
         user.setPassword("MotDePasse");
         user.setSolde(777);
         return user;
@@ -71,12 +82,9 @@ public class ConnectionControllerTest {
 
     @Test
     public void addConnectionShouldCreateConnectionIfUsersExistsAndConnectionIsNotInDb(){
-        User user1 = createUser();
-        User user2 = createUser();
-        user2.setEmail("B@B.fr");
 
-        user1 = userService.createUser(user1);
-        user2 = userService.createUser(user2);
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
 
         assertTrue(ctcRepository.findAllByOwnerOrTarget(user1,user1).isEmpty());
 
@@ -89,12 +97,8 @@ public class ConnectionControllerTest {
 
     @Test
     public void addConnectionShouldReturnBadRequestIfAnyUserDoesNotExist(){
-        User user1 = createUser();
-        User user2 = createUser();
-        user2.setEmail("B@B.fr");
-
-        user1 = userService.createUser(user1);
-        user2 = userService.createUser(user2);
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
 
         assertTrue(ctcService.findAllConnectionsByUser(user1).isEmpty());
 
@@ -108,12 +112,8 @@ public class ConnectionControllerTest {
 
     @Test
     public void addConnectionShouldReturnBadRequestIfConnectionAlreadyExists(){
-        User user1 = createUser();
-        User user2 = createUser();
-        user2.setEmail("B@B.fr");
-
-        user1 = userService.createUser(user1);
-        user2 = userService.createUser(user2);
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
         ResponseEntity<String> response = restTemplate.exchange(
@@ -131,12 +131,8 @@ public class ConnectionControllerTest {
 
     @Test
     public void getConnectionByUserEmailShouldReturnAList(){
-        User user1 = createUser();
-        User user2 = createUser();
-        user2.setEmail("B@B.fr");
-
-        user1 = userService.createUser(user1);
-        user2 = userService.createUser(user2);
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
 
         HttpEntity entity = new HttpEntity<>(httpHeaders);
         ResponseEntity response = restTemplate.exchange(
@@ -167,5 +163,43 @@ public class ConnectionControllerTest {
         );
         List list = response.getBody();
         assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void deleteConnectionShouldReturnOKifSuccessful(){
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
+
+        Connection ctx = ctcService.createConnection(user1, user2);
+        ctcService.save(ctx);
+        ConnectionDto ctxDto = mapper.map(ctx, ConnectionDto.class);
+
+        assertTrue(ctcService.findByOwnerAndTarget(user1, user2).isPresent());
+
+        HttpEntity<ConnectionDto> entity = new HttpEntity<>(ctxDto, httpHeaders);
+        ResponseEntity<ConnectionDto> response = restTemplate.exchange(
+                createURLWithPort("connection"), HttpMethod.DELETE, entity, ConnectionDto.class
+        );
+
+        assertTrue(ctcService.findByOwnerAndTarget(user1, user2).isEmpty());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void deleteConnectionShouldReturnBadRequestIfConnectionDoesNotExist(){
+
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
+        assertTrue(ctcService.findByOwnerAndTarget(user1, user2).isEmpty());
+
+        Connection ctx = ctcService.createConnection(user1, user2);
+        ConnectionDto ctxDto = mapper.map(ctx, ConnectionDto.class);
+
+        HttpEntity<ConnectionDto> entity = new HttpEntity<>(ctxDto, httpHeaders);
+        ResponseEntity<ConnectionDto> response = restTemplate.exchange(
+                createURLWithPort("connection"), HttpMethod.DELETE, entity, ConnectionDto.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 }

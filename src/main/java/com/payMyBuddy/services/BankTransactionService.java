@@ -21,6 +21,13 @@ public class BankTransactionService {
     @Autowired
     private UserService userService;
 
+    /**
+     * Create a BankTransaction object
+     * @param user user linked to the transaction
+     * @param iBAN IBAN of the bank account
+     * @param amount amount of money transferred, can be positive or negative
+     * @return the bankTransaction object
+     */
     public BankTransaction createBankTransaction(User user, String iBAN, double amount){
         BankTransaction bTx = new BankTransaction();
         bTx.setUser(user);
@@ -30,11 +37,22 @@ public class BankTransactionService {
         return bTx;
     }
 
+    /**
+     * Save the transaction in dB
+     * @param btx the transaction
+     * @return the transaction in dB
+     */
     public BankTransaction save(BankTransaction btx){
         return bTxRepository.save(btx);
     }
 
+    /**
+     * Process the bankTransaction
+     * @param btx the bankTransaction
+     * @return true if successful, false otherwise
+     */
     public boolean processTransaction(BankTransaction btx){
+        //If the amount is 0, return false
         if(btx.getAmount() == 0){
             return false;
         }
@@ -42,6 +60,9 @@ public class BankTransactionService {
         User user = btx.getUser();
         double absAmount = Math.abs(btx.getAmount());
 
+        //If the amount is > 0, add money to the PayMyBuddy account
+        //If it's < 0, withdraw money
+        //If the user doesn't have enough money, return false
         if(btx.getAmount() > 0){
             user.setSolde(user.getSolde() + absAmount);
         } else if (btx.getAmount() < 0 && absAmount <= user.getSolde()) {
@@ -54,6 +75,11 @@ public class BankTransactionService {
         return true;
     }
 
+    /**
+     * Find all transactions linked to a user
+     * @param user the user
+     * @return a list of transactions
+     */
     public List<BankTransaction> findByUser(User user){
         return bTxRepository.findAllByUser(user);
     }
