@@ -32,7 +32,7 @@ public class UserService {
         String hashPw = Hashing.hash(user.getPassword());
         user.setPassword(hashPw);
         user.setSolde(0d);
-        user.setConnections(new ArrayList<User>());
+        user.setConnections(new ArrayList<>());
         return userRepository.save(user);
     }
 
