@@ -5,7 +5,6 @@ import com.payMyBuddy.model.Connection;
 import com.payMyBuddy.model.User;
 import com.payMyBuddy.services.ConnectionService;
 import com.payMyBuddy.services.UserService;
-import org.apache.coyote.Response;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +37,7 @@ public class ConnectionController {
      * @return 201 CREATED if the connection was successfully added, 400 otherwise
      */
     @PostMapping(value = "/connection/{ownerId}/{targetId}")
-    public ResponseEntity<Connection> add (@PathVariable Long ownerId, @PathVariable Long targetId){
+    public ResponseEntity<ConnectionDto> add (@PathVariable Long ownerId, @PathVariable Long targetId){
         //If one of the users doesn't exist, return BAD_REQUEST
         if (userService.getById(ownerId).isEmpty() || userService.getById(targetId).isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -49,7 +48,7 @@ public class ConnectionController {
         //If the connection doesn't exist already, save it in DB and return 201
         if(conService.findByOwnerAndTarget(owner, slave).isEmpty()){
             conService.save(con);
-            return new ResponseEntity<>(con, HttpStatus.CREATED);
+            return new ResponseEntity<>(connectionToDto(con), HttpStatus.CREATED);
         }
         //Otherwise, return 400
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -68,7 +67,7 @@ public class ConnectionController {
         }
         User user = userService.getByEmail(email).get();
         List<ConnectionDto> connectionDtoList = conService.findAllConnectionsByUser(user).stream()
-                .map(this::ConnectionToDto).collect(Collectors.toList());
+                .map(this::connectionToDto).collect(Collectors.toList());
         return connectionDtoList;
     }
 
@@ -97,7 +96,7 @@ public class ConnectionController {
      * @param con a connection
      * @return corresponding connectionDto
      */
-    private ConnectionDto ConnectionToDto (Connection con){
+    private ConnectionDto connectionToDto(Connection con){
         return mp.map(con, ConnectionDto.class);
     }
 }
