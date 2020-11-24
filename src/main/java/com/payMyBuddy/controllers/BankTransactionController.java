@@ -31,7 +31,7 @@ public class BankTransactionController {
      * @return 400 if there was an error, 200 otherwise
      */
     @PostMapping(value = "bankTransaction/{userId}")
-    public ResponseEntity<BankTransaction> processTransaction (@RequestBody BankTransactionDto btxDto, @PathVariable Long userId){
+    public ResponseEntity<BankTransactionDto> processTransaction (@RequestBody BankTransactionDto btxDto, @PathVariable Long userId){
         if(userService.getById(userId).isEmpty()){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -39,7 +39,8 @@ public class BankTransactionController {
         User user = userService.getById(userId).get();
         BankTransaction btx = btxService.createBankTransaction(user, btxDto.getiBAN(),btxDto.getAmount());
         if(btxService.processTransaction(btx)){
-            return ResponseEntity.ok(btxService.save(btx));
+            btxService.save(btx);
+            return ResponseEntity.ok(btxDto);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
