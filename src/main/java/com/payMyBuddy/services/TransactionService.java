@@ -24,10 +24,7 @@ public class TransactionService {
     private UserRepository userRepository;
 
     @Autowired
-    private TransactionRepository txRepository;
-
-    @Autowired
-    private ConnectionService conService;
+    private TransactionRepository transactionRepository;
 
     /**
      * Check whether a payment is authorized or not
@@ -37,7 +34,7 @@ public class TransactionService {
      * @return true if authorized, false otherwise
      */
     private boolean isPaymentAuthorized(User sender, User receiver, double total){
-        return sender.getSolde() > total && conService.findByOwnerAndTarget(sender, receiver).isPresent();
+        return sender.getSolde() > total && sender.getConnections().contains(receiver);
     }
 
     /**
@@ -67,7 +64,7 @@ public class TransactionService {
             transaction.setAmount(amount);
             transaction.setDate(new Date());
             transaction.setDescription(txDto.getDescription());
-            txRepository.save(transaction);
+            transactionRepository.save(transaction);
             userRepository.save(sender);
             userRepository.save(receiver);
             return true;
@@ -81,6 +78,6 @@ public class TransactionService {
      * @return a list of transactions
      */
     public List<Transaction> findAllByUser(User user){
-        return txRepository.findAllBySenderOrReceiver(user,user);
+        return transactionRepository.findAllBySenderOrReceiver(user,user);
     }
 }

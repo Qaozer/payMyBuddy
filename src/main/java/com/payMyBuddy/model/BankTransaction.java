@@ -14,8 +14,13 @@ public class BankTransaction {
     @ManyToOne
     private User user;
 
-    private String IBAN;
+    @Column(length = 34, nullable = false)
+    private String iban;
+
+    @Column(precision = 18, scale = 2, nullable = false)
     private double amount;
+
+    @Column(nullable = false)
     private Date date;
 
     public BankTransaction() {
@@ -29,12 +34,12 @@ public class BankTransaction {
         this.user = user;
     }
 
-    public String getIBAN() {
-        return IBAN;
+    public String getIban() {
+        return iban;
     }
 
-    public void setIBAN(String IBAN) {
-        this.IBAN = IBAN;
+    public void setIban(String iban) {
+        this.iban = iban;
     }
 
     public double getAmount() {

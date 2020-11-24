@@ -1,7 +1,5 @@
 package com.payMyBuddy.model;
 
-import com.sun.istack.NotNull;
-
 import javax.persistence.*;
 import java.util.Date;
 
@@ -12,17 +10,18 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     private User sender;
 
-    @OneToOne
+    @ManyToOne
     private User receiver;
 
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 18, scale = 2)
     private double amount;
 
+    @Column(nullable = false)
     private Date date;
 
     public User getSender() {

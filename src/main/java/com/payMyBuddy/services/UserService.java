@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -31,6 +32,7 @@ public class UserService {
         String hashPw = Hashing.hash(user.getPassword());
         user.setPassword(hashPw);
         user.setSolde(0d);
+        user.setConnections(new ArrayList<>());
         return userRepository.save(user);
     }
 
@@ -97,20 +99,49 @@ public class UserService {
 
     /**
      * Update the password of a user
-     * @param pwUpdDto contains user email, old and new password
+     * @param passwordUpdateDto contains user email, old and new password
      * @return true if successful, false otherwise
      */
-    public boolean updatePassword(PasswordUpdateDto pwUpdDto){
-        Optional<User> opt = userRepository.findByEmail(pwUpdDto.getEmail());
+    public boolean updatePassword(PasswordUpdateDto passwordUpdateDto){
+        Optional<User> opt = userRepository.findByEmail(passwordUpdateDto.getEmail());
         if (opt.isPresent()){
             User user = opt.get();
-            if(Hashing.verify(pwUpdDto.getOldPassword(), user.getPassword())){
-                user.setPassword(Hashing.hash(pwUpdDto.getNewPassword()));
+            if(Hashing.verify(passwordUpdateDto.getOldPassword(), user.getPassword())){
+                user.setPassword(Hashing.hash(passwordUpdateDto.getNewPassword()));
                 userRepository.save(user);
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Add a connection
+     * @param owner user owning the connection
+     * @param target target of the connection
+     */
+    public void addConnection(User owner, User target){
+        owner.getConnections().add(target);
+        userRepository.save(owner);
+    }
+
+    /**
+     * Delete a connection
+     * @param owner user owning the connection
+     * @param target target of the connection
+     */
+    public void deleteConnection(User owner, User target){
+        owner.getConnections().remove(target);
+        userRepository.save(owner);
+    }
+
+    /**
+     * Get list of connections for a user
+     * @param owner the user
+     * @return a list of users
+     */
+    public List<User> getConnections(User owner){
+        return (List<User>) owner.getConnections();
     }
 
     /**

@@ -1,13 +1,10 @@
 package com.payMyBuddy.controllers;
 
 import com.payMyBuddy.dto.TransactionDto;
-import com.payMyBuddy.model.Connection;
 import com.payMyBuddy.model.Transaction;
 import com.payMyBuddy.model.User;
-import com.payMyBuddy.repositories.ConnectionRepository;
 import com.payMyBuddy.repositories.TransactionRepository;
 import com.payMyBuddy.repositories.UserRepository;
-import com.payMyBuddy.services.ConnectionService;
 import com.payMyBuddy.services.TransactionService;
 import com.payMyBuddy.services.UserService;
 import org.junit.Before;
@@ -38,28 +35,19 @@ public class TransactionControllerTest {
     private UserController userController;
 
     @Autowired
-    private ConnectionController ctcController;
-
-    @Autowired
-    private TransactionController txController;
+    private TransactionController transactionController;
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    private ConnectionService ctcService;
-
-    @Autowired
-    private TransactionService txService;
+    private TransactionService transactionService;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private ConnectionRepository ctcRepository;
-
-    @Autowired
-    private TransactionRepository txRepository;
+    private TransactionRepository transactionRepository;
 
     private TestRestTemplate restTemplate = new TestRestTemplate();
 
@@ -95,11 +83,10 @@ public class TransactionControllerTest {
         User user2 = userService.getById(2L).get();
 
         user1.setSolde(100);
+        userService.addConnection(user1, user2);
         user1 = userService.saveUser(user1);
 
-        Connection connection = ctcService.save(ctcService.createConnection(user1,user2));
-
-        assertTrue(txService.findAllByUser(user1).isEmpty());
+        assertTrue(transactionService.findAllByUser(user1).isEmpty());
 
         TransactionDto txDto = new TransactionDto();
 
@@ -116,9 +103,9 @@ public class TransactionControllerTest {
         user1 = userService.getById(user1.getId()).get();
         user2 = userService.getById(user2.getId()).get();
 
-        assertFalse(txService.findAllByUser(user1).isEmpty());
+        assertFalse(transactionService.findAllByUser(user1).isEmpty());
 
-        Transaction inDB = txService.findAllByUser(user1).stream().findFirst().get();
+        Transaction inDB = transactionService.findAllByUser(user1).stream().findFirst().get();
         assertEquals(user1, inDB.getSender());
         assertEquals(user2, inDB.getReceiver());
         assertEquals(16d, user1.getSolde());
@@ -131,7 +118,7 @@ public class TransactionControllerTest {
         User user1 = userService.getById(1L).get();
         User user2 = userService.getById(2L).get();
 
-        assertTrue(txService.findAllByUser(user1).isEmpty());
+        assertTrue(transactionService.findAllByUser(user1).isEmpty());
 
         TransactionDto txDto = new TransactionDto();
 
@@ -154,7 +141,7 @@ public class TransactionControllerTest {
         User user1 = userService.getById(1L).get();
         User user2 = userService.getById(2L).get();
 
-        assertTrue(txService.findAllByUser(user1).isEmpty());
+        assertTrue(transactionService.findAllByUser(user1).isEmpty());
 
         TransactionDto txDto = new TransactionDto();
 
@@ -179,7 +166,7 @@ public class TransactionControllerTest {
         user1.setSolde(100);
         user1 = userService.saveUser(user1);
 
-        assertTrue(txService.findAllByUser(user1).isEmpty());
+        assertTrue(transactionService.findAllByUser(user1).isEmpty());
 
         TransactionDto txDto = new TransactionDto();
 

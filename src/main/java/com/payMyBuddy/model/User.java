@@ -1,6 +1,7 @@
 package com.payMyBuddy.model;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,17 +13,25 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 45)
     private String nickname;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 18, scale = 2)
     private double solde;
+
+    @JoinTable(name="connections", joinColumns = {
+            @JoinColumn(name = "owner_id", referencedColumnName = "id", nullable = false)
+    }, inverseJoinColumns = {
+            @JoinColumn(name = "target_id", referencedColumnName = "id", nullable = false)
+    })
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<User> connections;
 
     public User() {
     }
@@ -65,6 +74,14 @@ public class User {
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public List<User> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(List<User> connections) {
+        this.connections = connections;
     }
 
     @Override

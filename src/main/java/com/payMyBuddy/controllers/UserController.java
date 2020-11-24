@@ -1,5 +1,6 @@
 package com.payMyBuddy.controllers;
 
+import com.payMyBuddy.dto.ConnectionDto;
 import com.payMyBuddy.dto.IdentifyDto;
 import com.payMyBuddy.dto.PasswordUpdateDto;
 import com.payMyBuddy.dto.UserDto;
@@ -97,5 +98,52 @@ public class UserController {
             }
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    /**
+     * Add a connection between two users
+     * @param ownerId the owner's id
+     * @param targetId the target's id
+     * @return 201 if successful, 400 otherwise
+     */
+    @PutMapping(value = "/addconnection/{ownerId}/{targetId}")
+    public ResponseEntity addConnection (@PathVariable Long ownerId, @PathVariable Long targetId){
+        //If one of the users doesn't exist, return BAD_REQUEST
+        if (userService.getById(ownerId).isEmpty() || userService.getById(targetId).isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        User owner = userService.getById(ownerId).get();
+        User target = userService.getById(targetId).get();
+        //If the connection doesn't exist already, save it in DB and return 201
+        if (!owner.getConnections().contains(target)){
+            userService.addConnection(owner, target);
+            return ResponseEntity.status(201).build();
+        }
+        //Otherwise, return 400
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    }
+
+    /** Delete a connection between two users
+     *
+     * @param ownerId the owner's id
+     * @param targetId the target's id
+     * @return 200 if successful, 400 otherwise
+     */
+    @PutMapping(value = "/delconnection/{ownerId}/{targetId}")
+    public ResponseEntity deleteConnection (@PathVariable Long ownerId, @PathVariable Long targetId){
+        //If one of the users doesn't exist, return BAD_REQUEST
+        if (userService.getById(ownerId).isEmpty() || userService.getById(targetId).isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        User owner = userService.getById(ownerId).get();
+        User target = userService.getById(targetId).get();
+        //If the connection exists, delete it and return 200
+        if (owner.getConnections().contains(target)){
+            userService.deleteConnection(owner, target);
+            return ResponseEntity.ok().build();
+        }
+        //Otherwise, return 400
+        System.out.println(owner.getConnections().toString());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
