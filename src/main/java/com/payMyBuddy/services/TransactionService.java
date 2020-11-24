@@ -46,14 +46,14 @@ public class TransactionService {
      * @return true if successful, false otherwise
      */
     public boolean makePayment (TransactionDto txDto){
+        //Check whether both user exist and amount > 0
+        if(userRepository.findById(txDto.getSenderId()).isEmpty() || userRepository.findById(txDto.getReceiverId()).isEmpty() ||
+        txDto.getAmount() <= 0){
+            return false;
+        }
         double amount = txDto.getAmount();
         double fare = amount * 0.05;
         double total = amount + fare;
-
-        //Check whether both user exist
-        if(userRepository.findById(txDto.getSenderId()).isEmpty() || userRepository.findById(txDto.getReceiverId()).isEmpty()){
-            return false;
-        }
 
         User sender = userRepository.findById(txDto.getSenderId()).get();
         User receiver = userRepository.findById(txDto.getReceiverId()).get();

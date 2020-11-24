@@ -149,6 +149,29 @@ public class TransactionControllerTest {
     }
 
     @Test
+    public void makePaymentShouldReturnBadRequestIfTheAmountIsZeroOrNegative(){
+
+        User user1 = userService.getById(1L).get();
+        User user2 = userService.getById(2L).get();
+
+        assertTrue(txService.findAllByUser(user1).isEmpty());
+
+        TransactionDto txDto = new TransactionDto();
+
+        txDto.setSenderId(user1.getId());
+        txDto.setReceiverId(user2.getId());
+        txDto.setAmount(0);
+        txDto.setDescription("Une description");
+
+        HttpEntity<TransactionDto> entity = new HttpEntity(txDto, httpHeaders);
+        ResponseEntity response = restTemplate.exchange(
+                createURLWithPort("transaction"), HttpMethod.POST, entity, TransactionDto.class
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     public void makePaymentShouldReturnBadRequestIfThereIsNoConnectionBetweenUsers(){
         User user1 = userService.getById(1L).get();
         User user2 = userService.getById(2L).get();
