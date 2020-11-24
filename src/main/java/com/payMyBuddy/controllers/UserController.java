@@ -1,6 +1,5 @@
 package com.payMyBuddy.controllers;
 
-import com.payMyBuddy.dto.ConnectionDto;
 import com.payMyBuddy.dto.IdentifyDto;
 import com.payMyBuddy.dto.PasswordUpdateDto;
 import com.payMyBuddy.dto.UserDto;

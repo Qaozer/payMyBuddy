@@ -16,7 +16,7 @@ import java.util.List;
 public class BankTransactionService {
 
     @Autowired
-    private BankTransactionRepository bTxRepository;
+    private BankTransactionRepository bankTransactionRepository;
 
     @Autowired
     private UserService userService;
@@ -43,7 +43,7 @@ public class BankTransactionService {
      * @return the transaction in dB
      */
     public BankTransaction save(BankTransaction btx){
-        return bTxRepository.save(btx);
+        return bankTransactionRepository.save(btx);
     }
 
     /**
@@ -81,6 +81,6 @@ public class BankTransactionService {
      * @return a list of transactions
      */
     public List<BankTransaction> findByUser(User user){
-        return bTxRepository.findAllByUser(user);
+        return bankTransactionRepository.findAllByUser(user);
     }
 }
