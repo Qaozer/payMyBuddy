@@ -1,6 +1,7 @@
 package com.payMyBuddy.model;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,6 +24,10 @@ public class User {
 
     @Column(nullable = false)
     private double solde;
+
+    @JoinTable(name="connections")
+    @ManyToMany(fetch = FetchType.EAGER)
+    private List<User> connections;
 
     public User() {
     }
@@ -65,6 +70,14 @@ public class User {
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+
+    public List<User> getConnections() {
+        return connections;
+    }
+
+    public void setConnections(List<User> connections) {
+        this.connections = connections;
     }
 
     @Override

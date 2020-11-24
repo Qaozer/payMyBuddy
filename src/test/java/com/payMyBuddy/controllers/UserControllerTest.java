@@ -45,17 +45,17 @@ public class UserControllerTest {
         return "http://localhost:" + port + uri;
     }
 
-    private User createUser(){
+    private User createUser(String email){
         User user = new User();
         user.setNickname("BobM");
-        user.setEmail("BobM@Aventure.fr");
+        user.setEmail(email);
         user.setPassword("MotDePasse");
         return user;
     }
 
     @Test
     public void saveShouldCreateUserInDbWithSoldSetToZero(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         assertTrue(userService.getByEmail(newUser.getEmail()).isEmpty());
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
@@ -69,7 +69,7 @@ public class UserControllerTest {
 
     @Test
     public void saveShoulReturnBadRequestIfEmailAlreadyInDb(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -85,7 +85,7 @@ public class UserControllerTest {
 
     @Test
     public void updateNicknameShouldUpdateUserIfItExists(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -107,7 +107,7 @@ public class UserControllerTest {
 
     @Test
     public void updateNicknameShouldReturnBadRequestIfUserDoesNotExist(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -127,7 +127,7 @@ public class UserControllerTest {
 
     @Test
     public void identifyShouldReturnTrueWhenCredentialsAreCorrect(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -147,7 +147,7 @@ public class UserControllerTest {
 
     @Test
     public void identifyShouldReturnBadRequestWhenCredentialsAreNotCorrect(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -167,7 +167,7 @@ public class UserControllerTest {
 
     @Test
     public void identifyShouldReturnBadRequestWhenUserEmailIsNotInDb(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -187,7 +187,7 @@ public class UserControllerTest {
 
     @Test
     public void updatePasswordShouldModifyPasswordInDbIfCredentialsAreCorrect(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -210,7 +210,7 @@ public class UserControllerTest {
 
     @Test
     public void updatePasswordShouldReturnBadRequestIfOldPasswordIncorrect(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -230,7 +230,7 @@ public class UserControllerTest {
 
     @Test
     public void updatePasswordShouldReturnBadRequestIfEmailNotFoundInDb(){
-        User newUser = createUser();
+        User newUser = createUser("BobM@Aventure.fr");
         HttpEntity<User> entity = new HttpEntity<>(newUser, httpHeaders);
         ResponseEntity response = restTemplate.exchange(
                 createURLWithPort("user"), HttpMethod.POST, entity, String.class
@@ -246,5 +246,98 @@ public class UserControllerTest {
                 createURLWithPort("/userpw"), HttpMethod.PUT, entity1, String.class
         );
         assertEquals(HttpStatus.BAD_REQUEST, response2.getStatusCode());
+    }
+
+    @Test
+    public void addConnectionShouldCreateConnectionIfTwoUsersExist(){
+        User user1 = createUser("BobM@Aventure.fr");
+        User user2 = createUser("BobB@Aventure.fr");
+
+        //Create first user in db
+        HttpEntity<User> entity = new HttpEntity<>(user1, httpHeaders);
+        restTemplate.exchange(
+                createURLWithPort("user"), HttpMethod.POST, entity, String.class
+        );
+
+        //Create second user in db
+        entity = new HttpEntity<>(user2, httpHeaders);
+        restTemplate.exchange(
+                createURLWithPort("user"), HttpMethod.POST, entity, String.class
+        );
+
+        //Check that no connection exists
+        user1 = userService.getByEmail("BobM@Aventure.fr").get();
+        assertTrue(user1.getConnections().isEmpty());
+
+        //Create a connection between user1 and user2 with user 1 as owner
+        HttpEntity entity2 = new HttpEntity(httpHeaders);
+        ResponseEntity response = restTemplate.exchange(
+                createURLWithPort("/addconnection/1/2"), HttpMethod.PUT, entity, String.class
+        );
+
+        //Check the connection has been created
+        user1 = userService.getByEmail("BobM@Aventure.fr").get();
+        user2 = userService.getByEmail("BobB@Aventure.fr").get();
+        assertTrue(user1.getConnections().contains(user2));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
+    @Test
+    public void addConnectionShouldReturnBadRequestIfAnyUserDoesNotExist(){
+        User user1 = createUser("BobM@Aventure.fr");
+
+        //Create first user in db
+        HttpEntity<User> entity = new HttpEntity<>(user1, httpHeaders);
+        restTemplate.exchange(
+                createURLWithPort("user"), HttpMethod.POST, entity, String.class
+        );
+
+        //Check that no connection exists
+        user1 = userService.getByEmail("BobM@Aventure.fr").get();
+        assertTrue(user1.getConnections().isEmpty());
+
+        //Create a connection between user1 and user2 with user 1 as owner
+        HttpEntity entity2 = new HttpEntity(httpHeaders);
+        ResponseEntity response = restTemplate.exchange(
+                createURLWithPort("/addconnection/1/2"), HttpMethod.PUT, entity, String.class
+        );
+
+        //Check no connection was created
+        user1 = userService.getByEmail("BobM@Aventure.fr").get();
+        assertTrue(user1.getConnections().isEmpty());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    public void addConnectionShouldReturnBadRequestIfConnectionAlreadyExists(){
+        User user1 = createUser("BobM@Aventure.fr");
+        User user2 = createUser("BobB@Aventure.fr");
+
+        //Create first user in db
+        HttpEntity<User> entity = new HttpEntity<>(user1, httpHeaders);
+        restTemplate.exchange(
+                createURLWithPort("user"), HttpMethod.POST, entity, String.class
+        );
+
+        //Create second user in db
+        entity = new HttpEntity<>(user2, httpHeaders);
+        restTemplate.exchange(
+                createURLWithPort("user"), HttpMethod.POST, entity, String.class
+        );
+
+        //Create a connection between user1 and user2 with user 1 as owner
+        HttpEntity entity2 = new HttpEntity(httpHeaders);
+        restTemplate.exchange(
+                createURLWithPort("/addconnection/1/2"), HttpMethod.PUT, entity, String.class
+        );
+
+        ResponseEntity response = restTemplate.exchange(
+                createURLWithPort("/addconnection/1/2"), HttpMethod.PUT, entity, String.class
+        );
+
+        //Check the connection has been created
+        user1 = userService.getByEmail("BobM@Aventure.fr").get();
+        assertEquals(1, user1.getConnections().size());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 }

@@ -14,7 +14,7 @@ public class BankTransaction {
     @ManyToOne
     private User user;
 
-    private String IBAN;
+    private String iban;
     private double amount;
     private Date date;
 
@@ -29,12 +29,12 @@ public class BankTransaction {
         this.user = user;
     }
 
-    public String getIBAN() {
-        return IBAN;
+    public String getIban() {
+        return iban;
     }
 
-    public void setIBAN(String IBAN) {
-        this.IBAN = IBAN;
+    public void setIban(String iban) {
+        this.iban = iban;
     }
 
     public double getAmount() {

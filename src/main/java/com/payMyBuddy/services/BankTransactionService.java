@@ -31,7 +31,7 @@ public class BankTransactionService {
     public BankTransaction createBankTransaction(User user, String iBAN, double amount){
         BankTransaction bTx = new BankTransaction();
         bTx.setUser(user);
-        bTx.setIBAN(iBAN);
+        bTx.setIban(iBAN);
         bTx.setAmount(amount);
         bTx.setDate(new Date());
         return bTx;

@@ -12,10 +12,10 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     private User sender;
 
-    @OneToOne
+    @ManyToOne
     private User receiver;
 
     private String description;
