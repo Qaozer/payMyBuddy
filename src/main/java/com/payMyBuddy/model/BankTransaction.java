@@ -14,8 +14,13 @@ public class BankTransaction {
     @ManyToOne
     private User user;
 
+    @Column(length = 34, nullable = false)
     private String iban;
+
+    @Column(precision = 18, scale = 2, nullable = false)
     private double amount;
+
+    @Column(nullable = false)
     private Date date;
 
     public BankTransaction() {

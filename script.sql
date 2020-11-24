@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `paymybuddy`.`users` (
   `password` VARCHAR(255) NOT NULL,
   `solde` DECIMAL(18,2) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `userscol_UNIQUE` (`email` ASC) VISIBLE);
+  UNIQUE INDEX `email` (`email` ASC) VISIBLE);
 
 CREATE TABLE IF NOT EXISTS `paymybuddy`.`bank_transactions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS `paymybuddy`.`bank_transactions` (
   `amount` DECIMAL(18,2) NOT NULL,
   `date` DATE NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `user_id_idx` (`user_id` ASC) VISIBLE,
+  INDEX `user_id` (`user_id` ASC) VISIBLE,
   CONSTRAINT `user_id`
     FOREIGN KEY (`user_id`)
     REFERENCES `paymybuddy`.`users` (`id`)
@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS `paymybuddy`.`transactions` (
   `date` DATE NOT NULL,
   `description` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
-  INDEX `sender_idx` (`sender_id` ASC) VISIBLE,
-  INDEX `receiver_idx` (`receiver_id` ASC) VISIBLE,
+  INDEX `sender_id` (`sender_id` ASC) VISIBLE,
+  INDEX `receiver_id` (`receiver_id` ASC) VISIBLE,
   CONSTRAINT `sender`
     FOREIGN KEY (`sender_id`)
     REFERENCES `paymybuddy`.`users` (`id`)
@@ -47,12 +47,12 @@ CREATE TABLE IF NOT EXISTS `paymybuddy`.`transactions` (
 CREATE TABLE IF NOT EXISTS `paymybuddy`.`connections`(
   `owner_id` BIGINT NOT NULL,
   `target_id` BIGINT NOT NULL,
-  CONSTRAINT `owner`
+  CONSTRAINT `owner_id`
     FOREIGN KEY (`owner_id`)
     REFERENCES `paymybuddy`.`users` (`id`)
 	ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT
+  CONSTRAINT `target_id`
     FOREIGN KEY (`target_id`)
     REFERENCES `paymybuddy`.`users` (`id`)
 	ON DELETE NO ACTION
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `paymybuddytest`.`users` (
   `password` VARCHAR(255) NOT NULL,
   `solde` DECIMAL(18,2) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `userscol_UNIQUE` (`email` ASC) VISIBLE);
+  UNIQUE INDEX `email` (`email` ASC) VISIBLE);
   
 CREATE TABLE IF NOT EXISTS `paymybuddytest`.`bank_transactions` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `paymybuddytest`.`bank_transactions` (
   `amount` DECIMAL(18,2) NOT NULL,
   `date` DATE NOT NULL,
   PRIMARY KEY (`id`),
-  INDEX `user_id_idx` (`user_id` ASC) VISIBLE,
+  INDEX `user_id` (`user_id` ASC) VISIBLE,
   CONSTRAINT `user_id`
     FOREIGN KEY (`user_id`)
     REFERENCES `paymybuddytest`.`users` (`id`)
@@ -88,8 +88,8 @@ CREATE TABLE IF NOT EXISTS `paymybuddytest`.`transactions` (
   `date` DATE NOT NULL,
   `description` VARCHAR(255) NULL,
   PRIMARY KEY (`id`),
-  INDEX `sender_idx` (`sender_id` ASC) VISIBLE,
-  INDEX `receiver_idx` (`receiver_id` ASC) VISIBLE,
+  INDEX `sender_id` (`sender_id` ASC) VISIBLE,
+  INDEX `receiver_id` (`receiver_id` ASC) VISIBLE,
   CONSTRAINT `sender`
     FOREIGN KEY (`sender_id`)
     REFERENCES `paymybuddytest`.`users` (`id`)
@@ -104,12 +104,12 @@ CREATE TABLE IF NOT EXISTS `paymybuddytest`.`transactions` (
 CREATE TABLE IF NOT EXISTS `paymybuddytest`.`connections`(
   `owner_id` BIGINT NOT NULL,
   `target_id` BIGINT NOT NULL,
-  CONSTRAINT `owner`
+  CONSTRAINT `owner_id`
     FOREIGN KEY (`owner_id`)
     REFERENCES `paymybuddytest`.`users` (`id`)
 	ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT
+  CONSTRAINT `target_id`
     FOREIGN KEY (`target_id`)
     REFERENCES `paymybuddytest`.`users` (`id`)
 	ON DELETE NO ACTION
